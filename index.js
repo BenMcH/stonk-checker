@@ -1,22 +1,16 @@
 import * as yahoo from 'https://deno.land/x/yahoo_stock_prices@0.0.1/yahoo-stock-prices.js'
-
-const ticker = [
-  'GME',
-  'AMC'
-]
+import { Application } from "https://deno.land/x/abc@v1.2.4/mod.ts";
 
 const log = (message, ...data) => console.log(`[${new Date().toISOString()}]: ${message}`, ...data)
 
-const update = async () => {
-  for(let symbol of ticker) {
-    await yahoo.getCurrentPrice(symbol).then((price) => log(`${symbol}: ${price}`)).catch((err) => log(`Error fetching: ${symbol}`, err))
-  }
-}
+const app = new Application();
 
-update();
+console.log("http://localhost:8080/");
 
-const MAX_PER_HOUR = 2000;
-const SECONDS_PER_HOUR = 3600;
-
-const interval = SECONDS_PER_HOUR / (MAX_PER_HOUR / ticker.length) * 1000
-setInterval(update, interval)
+app
+  .get("/:stock", async (c) => {
+    const price = await yahoo.getCurrentPrice(c.params.stock);
+    log(`${c.params.stock}: $${price}`);
+    return {price};
+  })
+  .start({ port: 8080 });
