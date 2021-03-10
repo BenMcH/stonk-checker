@@ -28,7 +28,7 @@ while (true) {
       lastPrice.set(symbol, price)
 
       log(
-        `${symbol}: ${price} ${lastValue > price ? '🚀' : lastValue < price ? '💎👐' : '😐'}`,
+        `${symbol}: ${price} ${price > lastValue ? '🚀' : price < lastValue ? '💎👐' : '😐'}`,
       );
     }).catch((err) => log(`Error fetching: ${symbol}`, err));
     await wait(interval);
