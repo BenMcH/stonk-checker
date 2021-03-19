@@ -21,16 +21,23 @@ const interval = SECONDS_PER_HOUR / (MAX_PER_HOUR / ticker.length) * 1000 /
 
 const lastPrice = new Map();
 
-while (true) {
-  for (let symbol of ticker) {
-    await yahoo.getCurrentPrice(symbol).then((price) => {
-      const lastValue = lastPrice.get(symbol) || price;
-      lastPrice.set(symbol, price)
+const updatePriceAndGetPrintout = (symbol, price) => {
+  const lastValue = lastPrice.get(symbol) || price;
+  lastPrice.set(symbol, price)
+  const output = `${symbol}: ${price}`.padEnd(11, ' ');
+  const emoji = price > lastValue ? '🚀' : price < lastValue ? '💎👐' : '😐';
+  return `${output} ${emoji}`.padEnd(19, ' ');
+};
 
-      log(
-        `${symbol}: ${price} ${price > lastValue ? '🚀' : price < lastValue ? '💎👐' : '😐'}`,
-      );
-    }).catch((err) => log(`Error fetching: ${symbol}`, err));
-    await wait(interval);
-  }
+while (true) {
+  await Promise.all(
+    ticker.map(symbol => yahoo.getCurrentPrice(symbol))
+  ).then((prices) => {
+    const outputs = ticker.map(
+      (symbol, index) => updatePriceAndGetPrintout(symbol, prices[index])
+    );
+    log(outputs.join(''))
+  }).catch((err) => log(`Error fetching: ${symbol}`, err));
+
+  await wait(interval * ticker.length);
 }
